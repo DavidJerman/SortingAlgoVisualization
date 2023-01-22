@@ -7,9 +7,9 @@
 
 typedef unsigned char byte;
 
-#define COLUMNS 20
-#define COLUMN_WIDTH 10
-#define COLUMN_HEIGHT 5
+#define BARS 40
+#define BAR_WIDTH 10
+#define BAR_HEIGHT 6
 #define PIXEL_WIDTH 2
 #define PIXEL_HEIGHT 2
 

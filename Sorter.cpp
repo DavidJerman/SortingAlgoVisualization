@@ -46,12 +46,48 @@ bool Sorter::OnUserUpdate(float fElapsedTime) {
         std::thread t1(&Sorter::selectionSort, this);
         t1.detach();
     }
+    // Insertion sort
+    if (GetKey(olc::Key::I).bPressed || GetKey(olc::Key::K3).bPressed) {
+        stop = true;
+        mtx1.lock();
+        setupArray();
+        mtx1.unlock();
+        std::thread t1(&Sorter::insertionSort, this);
+        t1.detach();
+    }
+    // Shell sort
+    if (GetKey(olc::Key::H).bPressed || GetKey(olc::Key::K4).bPressed) {
+        stop = true;
+        mtx1.lock();
+        setupArray();
+        mtx1.unlock();
+        std::thread t1(&Sorter::shellSort, this);
+        t1.detach();
+    }
+    // Radix sort
+    if (GetKey(olc::Key::R).bPressed || GetKey(olc::Key::K5).bPressed) {
+        stop = true;
+        mtx1.lock();
+        setupArray();
+        mtx1.unlock();
+        std::thread t1(&Sorter::radixSort, this);
+        t1.detach();
+    }
+    // Bogosort
+    if (GetKey(olc::Key::G).bPressed || GetKey(olc::Key::K6).bPressed) {
+        stop = true;
+        mtx1.lock();
+        setupArray();
+        mtx1.unlock();
+        std::thread t1(&Sorter::bogoSort, this);
+        t1.detach();
+    }
     return true;
 }
 
 void Sorter::drawArray() {
-    for (int i = 0; i < COLUMNS; i++) {
-        drawBar(i, COLUMNS, olc::BLACK, olc::BLACK);
+    for (int i = 0; i < BARS; i++) {
+        drawBar(i, BARS, olc::BLACK, olc::BLACK);
         if (i == arrayPointer)
             drawBar(i, array[i], olc::DARK_GREY);
         else
@@ -63,16 +99,16 @@ void Sorter::drawBar(int column, int height, olc::Pixel color, olc::Pixel border
     if (height < 0) {
         return;
     }
-    if (height > COLUMNS) {
+    if (height > BARS) {
         return;
     }
     for (int i = 0; i < height; i++) {
-        for (int j = 0; j < COLUMN_WIDTH; j++) {
-            for (int k = 0; k < COLUMN_HEIGHT; k++) {
-                if (j == 0 || j == COLUMN_WIDTH - 1)
-                    Draw(column * COLUMN_WIDTH + j, ScreenHeight() - (i) * COLUMN_HEIGHT + k - COLUMN_HEIGHT, border);
+        for (int j = 0; j < BAR_WIDTH; j++) {
+            for (int k = 0; k < BAR_HEIGHT; k++) {
+                if (j == 0 || j == BAR_WIDTH - 1)
+                    Draw(column * BAR_WIDTH + j, ScreenHeight() - (i) * BAR_HEIGHT + k - BAR_HEIGHT, border);
                 else
-                    Draw(column * COLUMN_WIDTH + j, ScreenHeight() - (i) * COLUMN_HEIGHT + k - COLUMN_HEIGHT, color);
+                    Draw(column * BAR_WIDTH + j, ScreenHeight() - (i) * BAR_HEIGHT + k - BAR_HEIGHT, color);
             }
         }
     }
@@ -86,7 +122,7 @@ void Sorter::drawText(int x, int y, std::string text, olc::Pixel color) {
 }
 
 void Sorter::setArray() {
-    for (int i = 0; i < COLUMNS; i++) {
+    for (int i = 0; i < BARS; i++) {
         array[i] = i + 1;
     }
 }
@@ -94,7 +130,7 @@ void Sorter::setArray() {
 // This might not be the best way to randomize an array, but it will do for now
 void Sorter::randomizeArrayOrder() {
     for (unsigned char &i: array) {
-        int randomIndex = rand() % COLUMNS;
+        int randomIndex = rand() % BARS;
         int temp = i;
         i = array[randomIndex];
         array[randomIndex] = temp;
@@ -102,8 +138,8 @@ void Sorter::randomizeArrayOrder() {
 }
 
 void Sorter::reverseArray() {
-    for (int i = 0; i < COLUMNS; i++) {
-        array[i] = COLUMNS - i;
+    for (int i = 0; i < BARS; i++) {
+        array[i] = BARS - i;
     }
 }
 
@@ -120,8 +156,8 @@ void Sorter::swap(T &t1, T &t2) {
 
 void Sorter::bubbleSort() {
     startSorting();
-    for (int i = 0; i < COLUMNS - 1; i++) {
-        for (int j = 0; j < COLUMNS - i - 1; j++) {
+    for (int i = 0; i < BARS - 1; i++) {
+        for (int j = 0; j < BARS - i - 1; j++) {
             mtx1.lock();
             arrayPointer = j;
             if (array[j] > array[j + 1]) {
@@ -138,9 +174,9 @@ void Sorter::bubbleSort() {
 void Sorter::selectionSort() {
     startSorting();
     int s;
-    for (int i = 0; i < COLUMNS; i++) {
+    for (int i = 0; i < BARS; i++) {
         s = i;
-        for (int j = i + 1; j < COLUMNS; j++) {
+        for (int j = i + 1; j < BARS; j++) {
             mtx1.lock();
             arrayPointer = j;
             if (array[j] < array[s])
@@ -155,6 +191,23 @@ void Sorter::selectionSort() {
     return stopSorting();
 }
 
+void Sorter::setupArray() {
+    resetArray();
+    setArray();
+    randomizeArrayOrder();
+    drawArray();
+}
+
+bool Sorter::isSorted() {
+    for (int i = 0; i < BARS - 1; i++) {
+        if (array[i] > array[i + 1]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 void Sorter::stopSorting() {
     mtx1.unlock();
     arrayPointer = 0;
@@ -163,14 +216,89 @@ void Sorter::stopSorting() {
     drawArray();
 }
 
-void Sorter::setupArray() {
-    resetArray();
-    setArray();
-    randomizeArrayOrder();
-    drawArray();
-}
-
 void Sorter::startSorting() {
     sorting = true;
     stop = false;
+}
+
+void Sorter::insertionSort() {
+    startSorting();
+    int j;
+    for (int i = 1; i < BARS; i++) {
+        j = i;
+        while (j > 0 && array[j - 1] > array[j]) {
+            mtx1.lock();
+            arrayPointer = j;
+            swap(array[j], array[j - 1]);
+            mtx2.unlock();
+            if (stop)
+                return stopSorting();
+            j--;
+        }
+    }
+    return stopSorting();
+}
+
+void Sorter::bucketSort() {
+    startSorting();
+    // Count phase
+    int max = array[0], min = array[0];
+    for (int i = 1; i < BARS; i++) {
+        mtx1.lock();
+        arrayPointer = i;
+        if (array[i] > max)
+            max = array[i];
+        if (array[i] < min)
+            min = array[i];
+        mtx2.unlock();
+    }
+    // Create lists
+    auto range = (max - min) / BARS;
+    std::list<int> bucketList[range];
+    // Hmmmmm... how do I visualise this process...?
+    return stopSorting();
+}
+
+void Sorter::countingSort() {
+    startSorting();
+    int max = array[0], min = array[0];
+    for (int i = 1; i < BARS; i++) {
+        mtx1.lock();
+        arrayPointer = i;
+        if (array[i] > max)
+            max = array[i];
+        if (array[i] < min)
+            min = array[i];
+        mtx2.unlock();
+    }
+    return stopSorting();
+}
+
+
+/**
+ * Radix sort implementation on bit level
+ */
+void Sorter::radixSort() {
+    startSorting();
+
+    return stopSorting();
+}
+
+
+void Sorter::shellSort() {
+    startSorting();
+    // Magic
+    return stopSorting();
+}
+
+void Sorter::bogoSort() {
+    startSorting();
+    while (!isSorted()) {
+        mtx1.lock();
+        randomizeArrayOrder();
+        mtx2.unlock();
+        if (stop)
+            return stopSorting();
+    }
+    return stopSorting();
 }

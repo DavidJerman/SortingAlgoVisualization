@@ -39,6 +39,8 @@ private:
 
     void setupArray();
 
+    bool isSorted();
+
     // Sorting algorithms
     void bubbleSort();
 
@@ -46,7 +48,9 @@ private:
 
     void insertionSort();
 
-    void quickSort(int left, int right);
+    void quickSort();
+
+    int partition();
 
     void mergeSort(int left, int right);
 
@@ -57,6 +61,10 @@ private:
     void heapify(int n, int i);
 
     void bucketSort();
+
+    void countingSort();
+
+    void radixSort();
 
     void shellSort();
 
@@ -70,7 +78,10 @@ private:
 
     void bitonicMerge(int low, int cnt, int dir);
 
-    byte array[COLUMNS]{}; // Will hold values from 1 to column count
+    // Dumb sorting algorithms
+    void bogoSort();
+
+    byte array[BARS]{}; // Will hold values from 1 to column count
 
     // Mutex for sorting algorithms
     std::mutex mtx1;
