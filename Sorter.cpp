@@ -9,6 +9,7 @@ Sorter::Sorter() {
 }
 
 bool Sorter::OnUserCreate() {
+    resetArray();
     setArray();
     randomizeArrayOrder();
     drawArray();
@@ -22,16 +23,39 @@ bool Sorter::OnUserCreate() {
 }
 
 bool Sorter::OnUserUpdate(float fElapsedTime) {
-    mtx2.lock();
-    drawArray();
-    mtx1.unlock();
+    if (sorting && !stop) {
+        mtx2.lock();
+        drawArray();
+        mtx1.unlock();
+    }
+    // Bubble sort
+    if (GetKey(olc::Key::B).bPressed || GetKey(olc::Key::K1).bPressed) {
+        stop = true;
+        mtx1.lock();
+        setupArray();
+        mtx1.unlock();
+        std::thread t1(&Sorter::bubbleSort, this);
+        t1.detach();
+    }
+    // Selection sort
+    if (GetKey(olc::Key::S).bPressed || GetKey(olc::Key::K2).bPressed) {
+        stop = true;
+        mtx1.lock();
+        setupArray();
+        mtx1.unlock();
+        std::thread t1(&Sorter::selectionSort, this);
+        t1.detach();
+    }
     return true;
 }
 
 void Sorter::drawArray() {
     for (int i = 0; i < COLUMNS; i++) {
         drawBar(i, COLUMNS, olc::BLACK, olc::BLACK);
-        drawBar(i, array[i], olc::WHITE);
+        if (i == arrayPointer)
+            drawBar(i, array[i], olc::DARK_GREY);
+        else
+            drawBar(i, array[i], olc::WHITE);
     }
 }
 
@@ -69,7 +93,7 @@ void Sorter::setArray() {
 
 // This might not be the best way to randomize an array, but it will do for now
 void Sorter::randomizeArrayOrder() {
-    for (unsigned char & i : array) {
+    for (unsigned char &i: array) {
         int randomIndex = rand() % COLUMNS;
         int temp = i;
         i = array[randomIndex];
@@ -87,16 +111,66 @@ void Sorter::resetArray() {
     memset(array, 0, sizeof(array));
 }
 
+template<typename T>
+void Sorter::swap(T &t1, T &t2) {
+    auto temp = t1;
+    t1 = t2;
+    t2 = temp;
+}
+
 void Sorter::bubbleSort() {
+    startSorting();
     for (int i = 0; i < COLUMNS - 1; i++) {
         for (int j = 0; j < COLUMNS - i - 1; j++) {
             mtx1.lock();
+            arrayPointer = j;
             if (array[j] > array[j + 1]) {
-                int temp = array[j];
-                array[j] = array[j + 1];
-                array[j + 1] = temp;
+                swap(array[j], array[j + 1]);
             }
             mtx2.unlock();
+            if (stop)
+                return stopSorting();
         }
     }
+    return stopSorting();
+}
+
+void Sorter::selectionSort() {
+    startSorting();
+    int s;
+    for (int i = 0; i < COLUMNS; i++) {
+        s = i;
+        for (int j = i + 1; j < COLUMNS; j++) {
+            mtx1.lock();
+            arrayPointer = j;
+            if (array[j] < array[s])
+                s = j;
+            mtx2.unlock();
+            if (stop)
+                return stopSorting();
+        }
+        if (s != i)
+            swap(array[i], array[s]);
+    }
+    return stopSorting();
+}
+
+void Sorter::stopSorting() {
+    mtx1.unlock();
+    arrayPointer = 0;
+    sorting = false;
+    stop = true;
+    drawArray();
+}
+
+void Sorter::setupArray() {
+    resetArray();
+    setArray();
+    randomizeArrayOrder();
+    drawArray();
+}
+
+void Sorter::startSorting() {
+    sorting = true;
+    stop = false;
 }

@@ -29,6 +29,16 @@ private:
 
     void resetArray();
 
+    // Utilities
+    template<typename T>
+    void swap(T &t1, T &t2);
+
+    void stopSorting();
+
+    void startSorting();
+
+    void setupArray();
+
     // Sorting algorithms
     void bubbleSort();
 
@@ -45,6 +55,8 @@ private:
     void heapSort();
 
     void heapify(int n, int i);
+
+    void bucketSort();
 
     void shellSort();
 
@@ -63,6 +75,11 @@ private:
     // Mutex for sorting algorithms
     std::mutex mtx1;
     std::mutex mtx2;
+
+    bool sorting {false};
+    bool stop {false};
+
+    int arrayPointer = 0;
 };
 
 #endif //SORTER
