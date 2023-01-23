@@ -7,7 +7,7 @@
 
 typedef unsigned char byte;
 
-#define BARS 40
+#define BARS 105
 #define BAR_WIDTH 10
 #define BAR_HEIGHT 6
 #define PIXEL_WIDTH 2

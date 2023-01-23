@@ -82,6 +82,15 @@ bool Sorter::OnUserUpdate(float fElapsedTime) {
         std::thread t1(&Sorter::bogoSort, this);
         t1.detach();
     }
+    // Counting sort
+    if (GetKey(olc::Key::C).bPressed || GetKey(olc::Key::K7).bPressed) {
+        stop = true;
+        mtx1.lock();
+        setupArray();
+        mtx1.unlock();
+        std::thread t1(&Sorter::countingSort, this);
+        t1.detach();
+    }
     return true;
 }
 
@@ -271,9 +280,24 @@ void Sorter::countingSort() {
             min = array[i];
         mtx2.unlock();
     }
+    int range = max - min + 1;
+    int count[range];
+    memset(count, 0, sizeof(count));
+    for (int i = 0; i < BARS; i++) {
+        mtx1.lock();
+        arrayPointer = i;
+        count[array[i] - min]++;
+        mtx2.unlock();
+    }
+    for (int i = 0, j = 0; i < range; i++) {
+        arrayPointer = j;
+        mtx1.lock();
+        if (count[i]--)
+            array[j++] = i + min;
+        mtx2.unlock();
+    }
     return stopSorting();
 }
-
 
 /**
  * Radix sort implementation on bit level
