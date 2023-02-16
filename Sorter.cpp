@@ -248,6 +248,11 @@ void Sorter::insertionSort() {
     return stopSorting();
 }
 
+struct Node {
+    int value;
+    Node *next;
+};
+
 void Sorter::bucketSort() {
     startSorting();
     // Count phase
@@ -263,8 +268,23 @@ void Sorter::bucketSort() {
     }
     // Create lists
     auto range = (max - min) / BARS;
-    std::list<int> bucketList[range];
-    // Hmmmmm... how do I visualise this process...?
+    std::vector<Node*> bucketList(range);
+    // Init
+    for (auto &node: bucketList)
+        node = nullptr;
+    // Add items to buckets
+    for (unsigned char &number : array) {
+        auto index = number - min;
+        auto ptr = bucketList[index];
+        if (!bucketList[index])
+            bucketList[index] = new Node {number, nullptr};
+        else {
+            while (!ptr->next) ptr = ptr->next;
+            ptr->next = new Node {number, nullptr};
+        }
+    }
+    // Empty the buckets
+
     return stopSorting();
 }
 
@@ -304,10 +324,13 @@ void Sorter::countingSort() {
  */
 void Sorter::radixSort() {
     startSorting();
+    // Binary radix
+    for (int bit = 0; bit < sizeof(byte); bit++) {
+        // Bucket sort
 
+    }
     return stopSorting();
 }
-
 
 void Sorter::shellSort() {
     startSorting();
